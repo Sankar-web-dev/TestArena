@@ -64,7 +64,7 @@ function guessLanguage(text: string): string {
   if (/def\s+\w+\(|print\s*\(|import\s+\w+\s*$/m.test(text))
     return "python";
   if (/SELECT\s+.+FROM|INSERT\s+INTO/i.test(text)) return "sql";
-  if (/<[a-z]+[^>]*>.*<\/[a-z]+>/is.test(text)) return "markup";
+  if (/<[a-z]+[^>]*>[\s\S]*<\/[a-z]+>/i.test(text)) return "markup";
   if (/=>|console\.log|const\s|let\s|function\s/.test(text))
     return "javascript";
   return "c";
