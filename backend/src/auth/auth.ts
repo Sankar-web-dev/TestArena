@@ -12,10 +12,12 @@ export function createAuth(prisma: PrismaService) {
       provider: "postgresql",
     }),
 
-    trustedOrigins: [
-      "http://localhost:3005",
-      "http://127.0.0.1:3005",
-    ],
+    trustedOrigins: (
+      process.env.FRONTEND_URL ??
+      "http://localhost:3005,http://127.0.0.1:3005"
+    )
+      .split(",")
+      .map((origin) => origin.trim()),
     emailAndPassword: {
       enabled: true,
     },
