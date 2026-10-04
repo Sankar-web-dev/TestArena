@@ -1,0 +1,46 @@
+# ---- Monorepo (frontend/ and backend/) ----
+
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# build output
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# secrets — never commit real env files
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# generated Prisma client
+backend/src/generated/
+
+# logs
+*.log
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# renamed embedded repos (kept as backup, never committed)
+.git.bak/
+
+# agent/tooling artifacts
+.agents/
+.claude/
+.cursor/
+.devin/
+.windsurf/
+skills-lock.json
+
+# vercel
+.vercel

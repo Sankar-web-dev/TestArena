@@ -1,0 +1,233 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id
+  name          String
+  username      String?   @unique
+  email         String    @unique
+  role          Role      @default(STUDENT)
+  status        UserStatus @default(ACTIVE)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  emailVerified Boolean   @default(false)
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  createdTests  Test[]
+  attempts      Attempt[]
+
+  @@index([role])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+model Test {
+  id           Int        @id @default(autoincrement())
+  title        String
+  description  String?
+  duration     Int
+  passwordHash String
+  status       TestStatus @default(DRAFT)
+  startTime    DateTime?
+  endTime      DateTime?
+  createdById  String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  questions    Question[]
+  attempts     Attempt[]
+  createdBy    User       @relation(fields: [createdById], references: [id])
+
+  @@index([createdById])
+  @@index([status])
+  @@index([startTime])
+  @@index([endTime])
+}
+
+model Question {
+  id            Int              @id @default(autoincrement())
+  testId        Int
+  questionText  String
+  marks         Int              @default(1)
+  status        QuestionStatus   @default(DRAFT)
+  correctOption String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  test          Test             @relation(fields: [testId], references: [id], onDelete: Cascade)
+  options       QuestionOption[]
+  answers       Answer[]
+  attemptQuestions AttemptQuestion[]
+
+  @@index([testId])
+  @@index([testId, status])
+}
+
+model QuestionOption {
+  id         Int      @id @default(autoincrement())
+  questionId Int
+  optionKey  String
+  optionText String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, optionKey])
+}
+
+enum Role {
+  ADMIN
+  STUDENT
+}
+
+enum TestStatus {
+  DRAFT
+  READY
+  PUBLISHED
+  LIVE
+  ENDED
+}
+
+enum QuestionStatus {
+  DRAFT
+  VERIFIED
+  REJECTED
+}
+
+model Attempt {
+  id          Int           @id @default(autoincrement())
+  testId      Int
+  studentId   String
+  startedAt   DateTime      @default(now())
+  submittedAt DateTime?
+  status      AttemptStatus @default(IN_PROGRESS)
+
+  test        Test          @relation(fields: [testId], references: [id], onDelete: Cascade)
+  student     User          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  answers     Answer[]
+  result      Result?
+  questions   AttemptQuestion[]
+
+  @@unique([testId, studentId])
+  @@index([studentId])
+  @@index([testId])
+  @@index([status])
+  @@index([testId, status])
+  @@index([studentId, status])
+}
+
+model AttemptQuestion {
+  id            Int    @id @default(autoincrement())
+  attemptId     Int
+  questionId    Int
+  questionText  String
+  marks         Int
+  correctOption String
+
+  attempt       Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question      Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  options       AttemptQuestionOption[]
+
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
+}
+
+model AttemptQuestionOption {
+  id                Int    @id @default(autoincrement())
+  attemptQuestionId Int
+  optionKey         String
+  optionText        String
+
+  attemptQuestion   AttemptQuestion @relation(fields: [attemptQuestionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptQuestionId, optionKey])
+}
+
+model Answer {
+  id             Int      @id @default(autoincrement())
+  attemptId      Int
+  questionId     Int
+  selectedOption String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  attempt        Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question       Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
+  @@index([questionId])
+}
+
+model Result {
+  id         Int      @id @default(autoincrement())
+  attemptId  Int      @unique
+  score      Int
+  totalMarks Int
+  percentage Float
+  createdAt  DateTime @default(now())
+
+  attempt    Attempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@index([score])
+  @@index([percentage])
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  EXPIRED
+}
