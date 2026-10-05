@@ -1,8 +1,10 @@
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-  baseURL:
-    process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3006",
+  // Same-origin /api/auth — proxied to the NestJS backend by
+  // Next.js rewrites (next.config.ts), keeping the session
+  // cookie first-party on this domain.
+  baseURL: "",
   fetchOptions: {
     credentials: "include",
   },

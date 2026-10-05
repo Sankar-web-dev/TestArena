@@ -101,6 +101,10 @@ export function LoginForm() {
 
       router.push(destination);
       router.refresh();
+      // If the destination route redirects back to /login (e.g.
+      // auth check fails), this component stays mounted — don't
+      // leave the button spinning forever.
+      setIsPending(false);
     } catch {
       setError(
         "Cannot reach the server. Check your connection and try again.",

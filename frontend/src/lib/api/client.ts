@@ -1,5 +1,11 @@
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3006";
+/**
+ * Browser-side base URL. Empty = same-origin requests.
+ *
+ * /api/* is proxied to the NestJS backend by Next.js rewrites
+ * (see next.config.ts) so the Better Auth session cookie stays
+ * first-party on the frontend domain.
+ */
+const API_URL = "";
 
 export class ApiError extends Error {
   constructor(

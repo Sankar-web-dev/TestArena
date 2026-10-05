@@ -18,6 +18,21 @@ export function createAuth(prisma: PrismaService) {
     )
       .split(",")
       .map((origin) => origin.trim()),
+
+    advanced: {
+      /**
+       * Frontend and backend live on different sites in production
+       * (Vercel + Render). Browsers only send cross-site cookies when
+       * SameSite=None AND Secure are set. Locally (http://localhost)
+       * Secure cookies can't be stored, so fall back to Lax.
+       * httpOnly and path=/ remain Better Auth defaults.
+       */
+      defaultCookieAttributes: (process.env.BETTER_AUTH_URL ?? "")
+        .startsWith("https://")
+        ? { sameSite: "none", secure: true }
+        : { sameSite: "lax", secure: false },
+    },
+
     emailAndPassword: {
       enabled: true,
     },
